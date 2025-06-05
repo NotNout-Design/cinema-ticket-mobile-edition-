@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Custom Cinema Ticket</title>
+
+    <!-- Google Fonts for a look similar to the image -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Base styles for the body and overall layout */
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* Full viewport height */
+            background-color: #000; /* Black background like the image */
+            overflow: hidden; /* Hide scrollbars */
+            -webkit-font-smoothing: antialiased; /* Smoother text rendering */
+            -moz-osx-font-smoothing: grayscale; /* Smoother text rendering */
+            touch-action: manipulation; /* Improves responsiveness on touch devices */
+        }
+
+        /* Container for the ticket to apply shadow and the top cut-out effect */
+        .ticket-wrapper {
+            position: relative;
+            width: 320px; /* Fixed width as seen in the image */
+            min-height: 520px; /* Minimum height to accommodate content */
+            background-color: transparent; /* Transparent to show the body background */
+            border-radius: 15px;
+            box-shadow: 0px 8px 25px rgba(0, 0, 0, 0.5); /* Enhanced shadow for depth */
+        }
+
+        /* The main ticket white background area */
+        .ticket {
+            width: 100%;
+            background-color: white;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            top: 15px; /* Offset to make space for the top cut-out notch */
+        }
+
+        /* Top "cut-out" notch effect */
+        .ticket-wrapper::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 30px; /* Creates a half-circle shape */
+            background-color: black; /* Matches body background to blend in */
+            border-bottom-left-radius: 30px;
+            border-bottom-right-radius: 30px;
+            z-index: 10; /* Ensures it overlays the ticket */
+        }
+
+        /* Common padding for content sections within the ticket */
+        .ticket-header, .ticket-body, .qr-section {
+            padding: 15px 20px; /* Consistent internal padding */
+        }
+
+        /* Ticket header styling */
+        .ticket-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Logo container for flex control */
+        .logo-container {
+            flex-shrink: 0;
+            cursor: pointer; /* Indicates interactivity */
+        }
+
+        /* Cinema logo image styling */
+        .logo {
+            height: 40px; /* Size based on the image */
+            object-fit: contain; /* Ensures logo fits without cropping */
+            display: block; /* Removes extra space below inline images */
+        }
+
+        /* Date and Time section styling */
+        .date-time-container {
+            text-align: right;
+            cursor: pointer; /* Indicates interactivity */
+        }
+
+        .date-time {
+            font-size: 13px;
+            font-weight: 500;
+            color: #007bff; /* Blue color from the image */
+            letter-spacing: 0.5px;
+        }
+
+        /* Movie poster container styling */
+        .movie-poster-container {
+            width: 100%;
+            height: 160px; /* Height adjusted for image proportion */
+            overflow: hidden; /* Clips any overflowing image parts */
+            background-color: #eee; /* Placeholder background */
+            cursor: pointer; /* Indicates interactivity */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .movie-poster {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Fills the container, cropping as needed */
+            display: block;
+        }
+
+        /* Ticket details body styling */
+        .ticket-body {
+            text-align: left;
+            color: #333;
+        }
+
+        /* Cinema name styling */
+        .cinema-name {
+            font-size: 14px;
+            color: #007bff; /* Blue color from the image */
+            font-weight: 500;
+            margin-bottom: 5px;
+            cursor: pointer;
+        }
+
+        /* Movie title styling */
+        .movie-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 5px;
+            line-height: 1.2; /* Tighter line height for multi-line titles */
+            cursor: pointer;
+        }
+
+        /* Experience type (e.g., 4DX) styling */
+        .experience-type {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 15px; /* Spacing before seats */
+            cursor: pointer;
+        }
+
+        /* Seat numbers styling */
+        .seat-numbers {
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 0;
+            cursor: pointer;
+        }
+
+        /* Perforated line effect */
+        .perforated-line {
+            border-top: 1px dashed #ccc;
+            margin: 15px 0; /* Vertical spacing */
+            position: relative;
+            width: calc(100% - 40px); /* Accounts for horizontal padding */
+            left: 20px;
+            box-sizing: border-box;
+        }
+
+        /* Small circles at the ends of the perforated line */
+        .perforated-line::before,
+        .perforated-line::after {
+            content: '';
+            position: absolute;
+            top: -5px; /* Adjust to align with the dashed line */
+            width: 10px;
+            height: 10px;
+            background-color: black; /* Matches body background */
+            border-radius: 50%;
+        }
+
+        .perforated-line::before {
+            left: -25px; /* Positions circle outside the ticket body */
+        }
+
+        .perforated-line::after {
+            right: -25px; /* Positions circle outside the ticket body */
+        }
+
+        /* QR Code section styling */
+        .qr-section {
+            text-align: center;
+            padding-top: 5px; /* Less padding from line */
+            padding-bottom: 25px; /* More padding at bottom */
+        }
+
+        /* QR Code display area */
+        .qr-code-display {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 10px auto; /* Center QR code */
+            display: flex; /* For centering the image */
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* QR Code image styling */
+        .qr-code-display img {
+            max-width: 100%;
+            height: auto;
+            display: block; /* Ensures it doesn't leave extra space below */
+        }
+
+        /* QR Code text styling */
+        .qr-text {
+            font-size: 15px;
+            font-weight: 500;
+            color: #333;
+            letter-spacing: 1px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+
+        /* Styles for contenteditable elements when focused */
+        [contenteditable]:focus {
+            outline: 2px dashed #007bff; /* Visual cue for editing */
+            background-color: #e0f0ff; /* Light blue background */
+            padding: 2px;
+            border-radius: 3px;
+        }
+
+        /* Responsive adjustments for smaller screens, especially landscape */
+        @media (max-height: 500px) and (orientation: landscape) {
+            body {
+                align-items: flex-start; /* Align to top to show more content */
+                padding-top: 10px;
+            }
+            .ticket-wrapper {
+                min-height: auto; /* Allow height to shrink */
+                box-shadow: none; /* Reduce visual clutter */
+                width: 280px; /* Slightly narrower for landscape */
+            }
+            .ticket {
+                top: 10px;
+            }
+            .ticket-wrapper::before {
+                height: 20px;
+            }
+            .ticket-header, .ticket-body, .qr-section {
+                padding: 10px 15px;
+            }
+            .movie-poster-container {
+                height: 120px;
+            }
+            .qr-code-display {
+                width: 100px;
+                height: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ticket-wrapper">
+        <div class="ticket">
+            <!-- Ticket Header -->
+            <div class="ticket-header">
+                <div class="logo-container">
+                    <!-- Placeholder logo image (100x40 transparent PNG) -->
+                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAAAoAQMAAAAB/D93AAAABlBMVEX///8AAABVwt/RAAAAAXRSTlMAQObYZgAAABFJREFUeNpjYCAeMBhgwAAABAAMbAG4a/4xPgAAAABJRU5ErkJggg==" class="logo" id="cinemaLogo" alt="Cinema Logo">
+                </div>
+                <div class="date-time-container">
+                    <span class="date-time" id="ticketDateTime" contenteditable="true">THU 03 APR - 22:15</span>
+                </div>
+            </div>
+
+            <!-- Movie Image -->
+            <div class="movie-poster-container">
+                <!-- Placeholder movie poster image (320x160 transparent PNG) -->
+                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAAEwAQMAAACG/38vAAAABlBMVEX///8AAABVwt/RAAAAAXRSTlMAQObYZgAAABpJREFUeNpjYBgFo2AUjIKhAABjGAVjYBTsAAAVuAAB69kHIAAAAABJRU5ErkJggg==" class="movie-poster" id="moviePoster" alt="Movie Poster">
+            </div>
+
+            <!-- Ticket Details -->
+            <div class="ticket-body">
+                <p class="cinema-name" id="cinemaName" contenteditable="true">VOX CINEMA</p>
+                <p class="movie-title" id="movieTitle" contenteditable="true">Captain America: Brave New World</p>
+                <p class="experience-type" id="experienceType" contenteditable="true">4DX</p>
+                <p class="seat-numbers" id="seatNumbers" contenteditable="true">D-7, D-6</p>
+            </div>
+
+            <!-- Perforated Line -->
+            <div class="perforated-line"></div>
+
+            <!-- QR Code Section -->
+            <div class="qr-section">
+                <!-- The QR code image will be generated here -->
+                <img id="qrCodeImage" class="qr-code-display" alt="QR Code">
+                <p class="qr-text" id="qrCodeText" contenteditable="true">XIU050T</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden file input for image uploads -->
+    <input type="file" id="imageUploadInput" accept="image/*" style="display: none;">
+
+    <script>
+        // Store references to all editable elements by their IDs
+        const editableElements = {
+            'ticketDateTime': { type: 'text', element: null },
+            'cinemaName': { type: 'text', element: null },
+            'movieTitle': { type: 'text', element: null },
+            'experienceType': { type: 'text', element: null },
+            'seatNumbers': { type: 'text', element: null },
+            'qrCodeText': { type: 'text', element: null },
+            // defaultSrc for images are their Base64 embedded placeholders
+            'cinemaLogo': { type: 'image', element: null, defaultSrc: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAAAoAQMAAAAB/D93AAAABlBMVEX///8AAABVwt/RAAAAAXRSTlMAQObYZgAAABFJREFUeNpjYCAeMBhgwAAABAAMbAG4a/4xPgAAAABJRU5ErkJggg==' },
+            'moviePoster': { type: 'image', element: null, defaultSrc: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAAEwAQMAAACG/38vAAAABlBMVEX///8AAABVwt/RAAAAAXRSTlMAQObYZgAAABpJREFUeNpjYBgFo2AUjIKhAABjGAVjYBTsAAAVuAAB69kHIAAAAABJRU5ErkJggg==' }
+            // qrCodeImage is now dynamic, so removed from here as a static image property
+        };
+
+        const qrCodeImageElement = document.getElementById('qrCodeImage'); // Direct reference to the QR code img
+        const imageUploadInput = document.getElementById('imageUploadInput'); // Reference to the hidden file input
+
+        /**
+         * Generates and displays a QR code image based on the provided text.
+         * Uses an external QR code API.
+         * @param {string} text The data to encode in the QR code.
+         */
+        function generateQRCode(text) {
+            if (!qrCodeImageElement) {
+                console.error("QR Code image element not found.");
+                return;
+            }
+
+            if (text.trim() === '') {
+                // Display a placeholder image for empty text or if API fails
+                qrCodeImageElement.src = 'https://placehold.co/120x120/AAAAAA/FFFFFF?text=QR+Code';
+                return;
+            }
+            // Encode the text to ensure it's URL-safe
+            const encodedText = encodeURIComponent(text);
+            qrCodeImageElement.src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodedText}`;
+
+            // Add an error handler for the image in case the API doesn't return an image
+            qrCodeImageElement.onerror = () => {
+                console.error("Failed to load QR code image from API. Displaying fallback.");
+                qrCodeImageElement.src = 'https://placehold.co/120x120/AAAAAA/FFFFFF?text=QR+Error'; // Fallback for API failure
+            };
+        }
+
+        /**
+         * Saves the current state of all editable elements to localStorage.
+         * Only text content will persist across sessions. Image data (Base64)
+         * is not saved due to localStorage quota limitations.
+         */
+        function saveTicketData() {
+            const dataToSave = {};
+            for (const id in editableElements) {
+                const elementData = editableElements[id];
+                if (elementData.element && elementData.type === 'text') {
+                    dataToSave[id] = elementData.element.textContent;
+                }
+            }
+            try {
+                const dataString = JSON.stringify(dataToSave);
+                if (dataString.length > (5 * 1024 * 1024)) {
+                    console.warn("Data size approaching localStorage quota limit. Only essential text data is being saved.");
+                }
+                localStorage.setItem('cinemaTicketData', dataString);
+                console.log('Ticket text data saved:', dataToSave);
+            } catch (e) {
+                console.error('Failed to save text data to localStorage:', e);
+            }
+        }
+
+        /**
+         * Loads saved text data from localStorage and applies it to the ticket.
+         * Images will retain their default Base64 or session-specific uploaded state.
+         */
+        function loadTicketData() {
+            try {
+                const savedData = JSON.parse(localStorage.getItem('cinemaTicketData'));
+                if (savedData) {
+                    for (const id in editableElements) {
+                        const elementInfo = editableElements[id];
+                        if (elementInfo.element && elementInfo.type === 'text') {
+                            elementInfo.element.textContent = savedData[id] || elementInfo.element.textContent;
+                        }
+                    }
+                    // Generate QR code based on loaded data
+                    if (editableElements.qrCodeText.element) {
+                        generateQRCode(editableElements.qrCodeText.element.textContent);
+                    }
+                } else {
+                    initializeDefaultTicket();
+                }
+            } catch (e) {
+                console.error('Failed to load data from localStorage or parse it:', e);
+                initializeDefaultTicket();
+            }
+        }
+
+        /**
+         * Initializes ticket elements with default values (called if no saved data).
+         * This primarily applies default image sources.
+         */
+        function initializeDefaultTicket() {
+             for (const id in editableElements) {
+                const elementInfo = editableElements[id];
+                if (elementInfo.element && elementInfo.type === 'image') {
+                    elementInfo.element.src = elementInfo.defaultSrc;
+                }
+            }
+            // Generate QR code for the default text
+            if (editableElements.qrCodeText.element) {
+                generateQRCode(editableElements.qrCodeText.element.textContent);
+            }
+        }
+
+        // --- Event Listeners and Main Logic ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Cache element references for efficiency
+            for (const id in editableElements) {
+                const element = document.getElementById(id);
+                if (element) {
+                    editableElements[id].element = element;
+                } else {
+                    console.warn(`Element with ID '${id}' not found. It cannot be edited or saved.`);
+                }
+            }
+
+            loadTicketData(); // Attempt to load saved data or use defaults
+
+            // Add input/blur listeners for text elements
+            for (const id in editableElements) {
+                const elementInfo = editableElements[id];
+                const element = elementInfo.element;
+
+                if (element && elementInfo.type === 'text') {
+                    element.addEventListener('input', saveTicketData);
+                    element.addEventListener('blur', saveTicketData);
+                    // Special listener for QR text to regenerate QR code on change
+                    if (id === 'qrCodeText') {
+                        element.addEventListener('input', () => generateQRCode(element.textContent));
+                    }
+                } else if (element && elementInfo.type === 'image') {
+                    // Only allow image uploads for cinemaLogo and moviePoster
+                    if (id === 'cinemaLogo' || id === 'moviePoster') {
+                        element.addEventListener('click', () => {
+                            console.log("Image click detected for:", element.id); // Debugging
+                            const tempInput = document.createElement('input');
+                            tempInput.type = 'file';
+                            tempInput.accept = "image/*";
+                            tempInput.style.display = 'none';
+                            document.body.appendChild(tempInput);
+                            console.log("Temporary input created and appended."); // Debugging
+
+                            tempInput.onchange = (e) => {
+                                console.log("File input change detected."); // Debugging
+                                const file = e.target.files[0];
+                                if (file) {
+                                    console.log("File selected:", file.name, "Type:", file.type); // Debugging
+                                    const reader = new FileReader();
+                                    reader.onload = (readerEvent) => {
+                                        console.log("FileReader loaded result. Setting src."); // Debugging
+                                        element.src = readerEvent.target.result;
+                                        // Image data is NOT saved to localStorage due to quota limits.
+                                    };
+                                    reader.onerror = (error) => {
+                                        console.error("FileReader error:", error); // Debugging
+                                    };
+                                    reader.readAsDataURL(file); // Read file as Data URL
+                                } else {
+                                    console.log("No file selected or file is null."); // Debugging
+                                }
+                                document.body.removeChild(tempInput); // Clean up temp input
+                                console.log("Temporary input removed."); // Debugging
+                            };
+                            tempInput.click();
+                            console.log("Temporary input clicked."); // Debugging
+                        });
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
